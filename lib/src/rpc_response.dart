@@ -14,7 +14,8 @@ class RpcResponse extends _ParamsIterationSupport {
 	Iterator<Object> get iterator =>
 		new _ParamsIterator(this);
 
-	XmlElement _root;
+  var builder;
+	var _root;
 	List _params = [];
 
 	/**
@@ -22,22 +23,23 @@ class RpcResponse extends _ParamsIterationSupport {
 	 * Use [successful] flag for the initial state of the request.
 	 */
 	RpcResponse({this.isSuccess: true}) {
-		_root = _makeRoot();
+    _makeRoot();
+		_root = builder.build();
 	}
 
 	/**
 	 * Parses an external response from text.
 	 */
 	RpcResponse.fromText(String body) {
-		_root = XML.parse(body);
+		_root = parse(body);
 		var resultNode = _getResultNode();
 
 		isSuccess = resultNode.name != FAULT_NODE;
 
 		if (isSuccess) {
-			resultNode.children.forEach((XmlElement paramNode) {
-				_params.add(RpcParam.fromParamNode(paramNode));
-			});
+			resultNode.findAllElements('param').forEach((XmlNode paramNode) =>
+				_params.add(RpcParam.fromParamNode(paramNode))
+			);
 		}
 		else {
 			XmlElement valueNode = resultNode.children.single;
@@ -49,31 +51,37 @@ class RpcResponse extends _ParamsIterationSupport {
 
 	@override
 	String toString() {
-		_root = _makeRoot();
+    _makeRoot();
+		_root = builder.build();
 
-		var resultNode = _getResultNode();
-
-		resultNode.children.clear();
-
-		if (!isSuccess) {
-			assert(_params.length < 2);
-		}
-
-		_params.forEach((Object param) {
-			var transformedParam = RpcParam.valueToXml(param);
-
-			if (isSuccess)
-				resultNode.addChild(new XmlElement('param', elements: [new XmlElement(VALUE_NODE, elements: [transformedParam])]));
-			else
-				resultNode.addChild(new XmlElement('value', elements: [transformedParam]));
-		});
-
-		return RpcRequest._toStringInternal(XML_HEADER + _root.toString());
+    return _root.toString();
 	}
 
-	XmlElement _makeRoot() =>
-		new XmlElement(RESPONSE_NODE, elements: [new XmlElement(isSuccess ? PARAMS_NODE : FAULT_NODE)]);
+	void _makeRoot() {
+    builder = new XmlBuilder();
+    builder.processing('xml', 'version="1.0"');
+    builder.element(RESPONSE_NODE, nest: () {
+      builder.element((isSuccess ? PARAMS_NODE : FAULT_NODE), nest: () {
+        _makeParams();
+      });
+    });
+  }
+
+  void _makeParams() {
+    if (!isSuccess) {
+      assert(_params.length < 2);
+    }
+
+    _params.forEach((Object param) {
+      if (isSuccess)
+        builder.element('param', nest: () {
+          RpcParam.buildParam(builder, param);
+        });
+      else
+        builder.element('value', nest: param);
+    });
+  }
 
 	XmlElement _getResultNode() =>
-		_root.children.single;
+		_root.children[1];
 }

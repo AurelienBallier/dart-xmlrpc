@@ -6,62 +6,49 @@ class RpcParam {
 	 */
 	static String DATE_FORMAT = 'yMdTHH:mm:ss';
 
-	static final _converter = new Multiconverter({
-		int: (int value) =>
-			new XmlElement('int', elements: [new XmlText(value.toString())]),
-
-		bool: (bool value) =>
-			new XmlElement('boolean', elements: [new XmlText(value.toString())]),
-
-		double: (double value) =>
-			new XmlElement('double', elements: [new XmlText(value.toString())]),
-
-		DateTime: (DateTime value) =>
-			new XmlElement(ISO_8601_NODE, elements: [new XmlText(new DateFormat(DATE_FORMAT).format(value))]),
-
-		new List<int>().runtimeType: (List<int> binaryData) =>
-			new XmlElement(BASE64_NODE, elements: [new XmlText(CryptoUtils.bytesToBase64(binaryData))]),
-
-		'boolean': (XmlElement elem) =>
+	static final _converter_in = new Multiconverter({
+		'boolean': (XmlNode elem) =>
 			elem.text == 'true',
 
-		'int': (XmlElement elem) =>
+		'int': (XmlNode elem) =>
 			int.parse(elem.text),
 
-		'i4': (XmlElement elem) =>
+		'i4': (XmlNode elem) =>
 			int.parse(elem.text),
 
-		'double': (XmlElement elem) =>
+		'double': (XmlNode elem) =>
 			double.parse(elem.text),
 
-		ISO_8601_NODE: (XmlElement elem) =>
+		ISO_8601_NODE: (XmlNode elem) =>
 			DateTime.parse(elem.text),
 
-		'nil': (XmlElement elem) =>
+		'nil': (XmlNode elem) =>
 			null,
 
-		'base64': (XmlElement elem) =>
+		'base64': (XmlNode elem) =>
 			CryptoUtils.base64StringToBytes(elem.text),
 
 		 // <array><data><value>1</value><value>2</value></data></array>
-		'array': (XmlElement elem) {
+		'array': (XmlNode elem) {
 			var result = [];
-			XmlElement dataNode = elem.children.single;
+			XmlNode dataNode = elem.children.single;
 
-			dataNode.children.forEach((XmlElement elem) =>
-				result.add(fromXmlElement(elem.children.single))
-			);
+			dataNode.children.forEach((XmlNode elem) {
+				if(elem.nodeType.toString() == 'XmlNodeType.ELEMENT'){
+					result.add(fromXmlElement(elem.children.single));
+				}
+			});
 
 			return result;
 		},
 
 		 // <struct><member><name>some</name><value><string>value</string></value></member></struct>
-		'struct': (XmlElement elem) {
+		'struct': (XmlNode elem) {
 			var result = {};
 
-			elem.children.forEach((XmlElement member) {
-				var name = (member.query(NAME_NODE).single as XmlElement).text;
-				XmlElement valueNode = member.query(VALUE_NODE).single;
+			elem.children.forEach((XmlNode member) {
+				var name = (member.query(NAME_NODE).single as XmlNode).text;
+				XmlNode valueNode = member.query(VALUE_NODE).single;
 
 				result[name] = fromXmlElement(valueNode.children.single);
 			});
@@ -69,35 +56,59 @@ class RpcParam {
 			return result;
 		},
 
-		String: (String value) =>
-			new XmlElement('string', elements: [new XmlText(value)]),
+		'string': (XmlNode elem) =>
+			elem.text
+	});
 
-		'string': (XmlElement elem) =>
-			elem.text,
+	static final _converter_out = new Multiconverter({
+		int: (var builder, int value) {
+			builder.element('int', nest: value.toString());
+		},
 
-		List: (List list) =>
-			new XmlElement(ARRAY_NODE, elements: [
-				new XmlElement(DATA_NODE,
-					elements: list.map((Object item) =>
-						new XmlElement(VALUE_NODE, elements: [RpcParam.valueToXml(item)])
-					)
-				)
-			]),
+		bool: (var builder, bool value) {
+			builder.element('boolean', nest: value.toString());
+		},
 
-		Map: (Map map) =>
-			new XmlElement(STRUCT_NODE, elements: map.keys.map((Object key) =>
-				new XmlElement(MEMBER_NODE, elements: [
-					new XmlElement(NAME_NODE, elements: [
-						new XmlText(key.toString())
-					]),
-					new XmlElement(VALUE_NODE, elements: [
-						RpcParam.valueToXml(map[key])
-					])
-				])
-			)),
+		double: (var builder, double value) {
+			builder.element('double', nest: value.toString());
+		},
 
-		null: (bool value) =>
-			new XmlElement('nil')
+		DateTime: (var builder, DateTime value) {
+			builder.element(ISO_8601_NODE, nest: new DateFormat(DATE_FORMAT).format(value));
+		},
+
+		new List<int>().runtimeType: (var builder, List<int> binaryData) {
+			builder.element(BASE64_NODE, nest: CryptoUtils.bytesToBase64(binaryData));
+		},
+
+		String: (var builder, String value) {
+			builder.element('string', nest: value);
+		},
+
+		List: (var builder, List list) {
+			builder.element(ARRAY_NODE, nest: (){
+				builder.element(DATA_NODE, nest: (){
+					list.forEach((Object value) {
+						RpcParam.buildParam(builder, value);
+					});
+				});
+			});
+		},
+
+		Map: (Map map) {
+			builder.element(STRUCT_NODE, nest: (){
+				map.keys.forEach((Object key) {
+					builder.element(MEMBER_NODE, nest: (){
+						builder.element(NAME_NODE, nest: key.toString());
+						RpcParam.buildParam(builder, map[key]);
+					});
+				});
+			});
+		},
+
+		null: (bool value) {
+			builder.element('nil', nest: (){});
+		}
 	});
 
 	/**
@@ -109,12 +120,12 @@ class RpcParam {
 	 *         <value>...</value>
 	 *     </param>
 	 */
-	static Object fromParamNode(XmlElement node) {
-		assert(node.name == 'param');
+	static Object fromParamNode(XmlNode node) {
+		assert(node.name.toString() == 'param');
 
-		XmlElement valueNodeElem = node.children.single;
+		XmlNode valueNodeElem = node.children[1];
 
-		assert(valueNodeElem.name == 'value');
+		assert(valueNodeElem.name.toString() == 'value');
 
 		return fromXmlElement(valueNodeElem.children.single);
 	}
@@ -126,8 +137,8 @@ class RpcParam {
 	 *
 	 *     <int>...</int>
 	 */
-	static Object fromXmlElement(XmlElement node) {
-		Function converter = _converter.getConverter(node.name);
+	static Object fromXmlElement(XmlNode node) {
+		Function converter = _converter_in.getConverter(node.name.toString());
 
 		assert(converter != null);
 
@@ -135,13 +146,16 @@ class RpcParam {
 	}
 
 	/**
-	 * Returns an XML node which wraps all the nodes generated for the value.
+	 * Modify xml builder for the value.
 	 */
-	static XmlElement valueToXml(Object value) {
-		Function converter = _converter.getConverter(value);
+
+	static void buildParam(var builder, Object value) {
+		Function converter = _converter_out.getConverter(value);
 
 		assert(converter != null);
 
-		return converter(value);
+		builder.element(VALUE_NODE, nest: () {
+			converter(builder, value);
+		});
 	}
 }

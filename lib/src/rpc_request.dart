@@ -1,6 +1,5 @@
 part of xmlrpc;
 
-
 /**
  * Represents all the data that is/should be passed.
  * The parameter list can be filled with any legal _Dart_ value.
@@ -21,7 +20,11 @@ part of xmlrpc;
  */
 class RpcRequest extends _ParamsIterationSupport {
 	List _params = [];
-	XmlElement _root;
+
+  var builder;
+	XmlNode _root;
+
+  String _method;
 
 	/**
 	* The method name.
@@ -31,14 +34,11 @@ class RpcRequest extends _ParamsIterationSupport {
 	*     </methodCall>
 	*/
 	String get method =>
-		_getMethodNode().text;
+		_method;
 
 	void set method(String method) {
-		var methodNode = _getMethodNode();
-
-		methodNode.children.clear();
-		methodNode.addChild(new XmlText(method));
-	}
+    _method = method;
+  }
 
 	@override
 	Iterator<Object> get iterator =>
@@ -48,11 +48,6 @@ class RpcRequest extends _ParamsIterationSupport {
 	* Constructs an empty request.
 	*/
 	RpcRequest({String method, List params}) {
-		_root = new XmlElement(METHOD_CALL_NODE, elements: [
-			new XmlElement(METHOD_NAME_NODE),
-			new XmlElement(PARAMS_NODE)
-		]);
-
 		if (method != null)
 			this.method = method;
 
@@ -79,25 +74,31 @@ class RpcRequest extends _ParamsIterationSupport {
 	*/
 	@override
 	String toString() {
-		var paramsNode = _getParamsNode();
-
-		paramsNode.children.clear();
-
-		_params.forEach((param) {
-			paramsNode.addChild(new XmlElement(PARAM_NODE, elements: [
-				new XmlElement(VALUE_NODE, elements: [RpcParam.valueToXml(param)])
-			]));
-		});
-
-		return _toStringInternal(XML_HEADER + _root.toString());
+    build();
+    _root = builder.build();
+    return _root.toString();
 	}
 
-	static String _toStringInternal(String original) =>
-		original.replaceAll('\r', '\n');
+  /**
+  * Build the request.
+  */
+  void build(){
+    builder = new XmlBuilder();
+    builder.processing('xml', 'version="1.0"');
+    builder.element(METHOD_CALL_NODE, nest: () {
+      builder.element(METHOD_NAME_NODE, nest: _method);
+      builder.element(PARAMS_NODE, nest: buildParam);
+    });
+  }
 
-	XmlElement _getMethodNode() =>
-		_root.query(METHOD_NAME_NODE).single;
-
-	XmlElement _getParamsNode() =>
-		_root.query(PARAMS_NODE).single;
+  /**
+  * Add params to the request builder.
+  */
+  void buildParam(){
+    _params.forEach((param) {
+      builder.element(PARAM_NODE, nest: (){
+        RpcParam.buildParam(builder, param);
+      });
+    });
+  }
 }

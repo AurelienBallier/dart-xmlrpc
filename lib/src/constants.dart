@@ -12,5 +12,3 @@ const STRUCT_NODE = 'struct';
 const MEMBER_NODE = 'member';
 const BASE64_NODE = 'base64';
 const ISO_8601_NODE = 'dateTime.iso8601';
-
-const XML_HEADER = '<?xml version="1.0"?>';
