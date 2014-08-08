@@ -35,7 +35,11 @@ class RpcParam {
 
 			dataNode.children.forEach((XmlNode elem) {
 				if(elem.nodeType.toString() == 'XmlNodeType.ELEMENT'){
-					result.add(fromXmlElement(elem.children.single));
+					if(elem.children.length > 0){
+						result.add(fromXmlElement(elem.children.single));
+					}else{
+						result.add("");
+					}
 				}
 			});
 
@@ -61,31 +65,31 @@ class RpcParam {
 	});
 
 	static final _converter_out = new Multiconverter({
-		int: (var builder, int value) {
+		"int": (var builder, int value) {
 			builder.element('int', nest: value.toString());
 		},
 
-		bool: (var builder, bool value) {
+		"bool": (var builder, bool value) {
 			builder.element('boolean', nest: value.toString());
 		},
 
-		double: (var builder, double value) {
+		"double": (var builder, double value) {
 			builder.element('double', nest: value.toString());
 		},
 
-		DateTime: (var builder, DateTime value) {
+		"DateTime": (var builder, DateTime value) {
 			builder.element(ISO_8601_NODE, nest: new DateFormat(DATE_FORMAT).format(value));
 		},
 
-		new List<int>().runtimeType: (var builder, List<int> binaryData) {
+		"new List<int>().runtimeType": (var builder, List<int> binaryData) {
 			builder.element(BASE64_NODE, nest: CryptoUtils.bytesToBase64(binaryData));
 		},
 
-		String: (var builder, String value) {
+		"String": (var builder, String value) {
 			builder.element('string', nest: value);
 		},
 
-		List: (var builder, List list) {
+		"List": (var builder, List list) {
 			builder.element(ARRAY_NODE, nest: (){
 				builder.element(DATA_NODE, nest: (){
 					list.forEach((Object value) {
@@ -95,7 +99,7 @@ class RpcParam {
 			});
 		},
 
-		Map: (Map map) {
+		"Map": (Map map) {
 			builder.element(STRUCT_NODE, nest: (){
 				map.keys.forEach((Object key) {
 					builder.element(MEMBER_NODE, nest: (){
@@ -106,7 +110,7 @@ class RpcParam {
 			});
 		},
 
-		null: (bool value) {
+		"null": (bool value) {
 			builder.element('nil', nest: (){});
 		}
 	});
@@ -138,6 +142,11 @@ class RpcParam {
 	 *     <int>...</int>
 	 */
 	static Object fromXmlElement(XmlNode node) {
+		//If there is no type it's a String
+		if(node.runtimeType == XmlText){
+			return node.text;
+		}
+
 		Function converter = _converter_in.getConverter(node.name.toString());
 
 		assert(converter != null);

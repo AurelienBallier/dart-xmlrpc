@@ -13,7 +13,6 @@ library xmlrpc;
 
 import 'package:xml/xml.dart';
 
-import 'dart:mirrors';
 import 'dart:collection';
 import 'package:intl/intl.dart';
 import 'package:crypto/crypto.dart';
