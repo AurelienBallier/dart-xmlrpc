@@ -2,7 +2,6 @@ library rpc_response_test;
 
 import 'package:unittest/unittest.dart';
 import 'package:xmlrpc/xmlrpc.dart';
-import 'package:xml/xml.dart';
 
 
 void main() {
@@ -17,13 +16,13 @@ void main() {
 					</param>
 				</params>
 			</methodResponse>
-		''');
+		'''.trim());
 
 		expect(resp.isSuccess, equals(true));
 		expect(resp, hasLength(1));
 		expect(resp[0], new isInstanceOf<String>());
 
-		resp = new RpcResponse.fromText('''
+		resp = new RpcResponse.fromText("""
 			<methodResponse>
 				<params>
 					<param>
@@ -39,7 +38,7 @@ void main() {
 					</param>
 				</params>
 			</methodResponse>
-		''');
+		""");
 
 		expect(resp.isSuccess, equals(true));
 		expect(resp, hasLength(1));
@@ -66,7 +65,7 @@ void main() {
 					</value>
 				</fault>
 			</methodResponse>
-		''');
+		'''.trim());
 
 		expect(resp.isSuccess, equals(false));
 		expect(resp, hasLength(1));

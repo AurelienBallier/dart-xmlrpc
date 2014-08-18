@@ -33,13 +33,13 @@ class RpcParam {
 			var result = [];
 			XmlElement dataNode = elem.findElements('data').single;
 
-			dataNode.findElements('value').forEach((XmlNode elem) {
-				if(elem.nodeType.toString() == 'XmlNodeType.ELEMENT'){
-					if(elem.children.length > 0){
-						result.add(fromXmlElement(elem.children.singleWhere((XmlNode n) => (n.nodeType.toString() == 'XmlNodeType.ELEMENT'))));
-					}else{
-						result.add("");
-					}
+			dataNode.findElements('value').forEach((XmlNode e) {			  
+				if(e.nodeType.toString() == 'XmlNodeType.ELEMENT'){
+	        e.children.forEach((c){
+	          if(c.text.trim() != ""){
+              result.add(fromXmlElement(c));
+            }
+          });
 				}
 			});
 
@@ -144,13 +144,14 @@ class RpcParam {
 	 *
 	 *     <int>...</int>
 	 */
-	static Object fromXmlElement(XmlElement node) {
+	static Object fromXmlElement(XmlNode node) {
 		//If there is no type it's a String
 		if(node.runtimeType == XmlText){
 			return node.text;
 		}
 
-		Function converter = _converter_in.getConverter(node.name.toString());
+		XmlElement _e = node;
+		Function converter = _converter_in.getConverter(_e.name.toString());
 
 		assert(converter != null);
 
