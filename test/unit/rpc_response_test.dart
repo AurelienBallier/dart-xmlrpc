@@ -79,7 +79,7 @@ void main() {
 		resp.addParam(1);
 		resp.addParam('hello');
 
-		expect(resp.toString(), equals('<?xml version="1.0"?>\n<methodResponse>\n   <params>\n      <param>\n         <value>\n            <int>1</int>\n         </value>\n      </param>\n      <param>\n         <value>\n            <string>hello</string>\n         </value>\n      </param>\n   </params>\n</methodResponse>'));
+		expect(resp.toString(), equals('<?xml version="1.0"?><methodResponse><params><param><value><int>1</int></value></param><param><value><string>hello</string></value></param></params></methodResponse>'));
 	});
 
 	test('From scratch failure', () {
@@ -88,28 +88,13 @@ void main() {
 		resp.isSuccess = false;
 		resp.addParam([2, 'hello2']);
 
-		expect(resp.toString(), equals('<?xml version="1.0"?>\n<methodResponse>\n   <fault>\n      <value>\n         <array>\n            <data>\n               <value>\n                  <int>2</int>\n               </value>\n               <value>\n                  <string>hello2</string>\n               </value>\n            </data>\n         </array>\n      </value>\n   </fault>\n</methodResponse>'));
+		expect(resp.toString(), equals('<?xml version="1.0"?><methodResponse><fault><value><array><data><value><int>2</int></value><value><string>hello2</string></value></data></array></value></fault></methodResponse>'));
 
 		resp = new RpcResponse();
 
 		resp.isSuccess = false;
 		resp.addParam({'hello3': 'there'});
 
-		expect(resp.toString(), equals('''<?xml version="1.0"?>
-<methodResponse>
-   <fault>
-      <value>
-         <struct>
-            <member>
-               <name>hello3</name>
-               <value>
-                  <string>there</string>
-               </value>
-            </member>
-         </struct>
-      </value>
-   </fault>
-</methodResponse>'''
-		));
+		expect(resp.toString(), equals('<?xml version="1.0"?><methodResponse><fault><value><struct><member><name>hello3</name><value><string>there</string></value></member></struct></value></fault></methodResponse>'));
 	});
 }

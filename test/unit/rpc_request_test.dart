@@ -17,7 +17,7 @@ main() {
 		);
 
 		expect(req.method, equals('blah'));
-		expect(req.toString(), equals('<?xml version="1.0"?>\n<methodCall>\n   <methodName>blah</methodName>\n   <params></params>\n</methodCall>'));
+		expect(req.toString(), equals('<?xml version="1.0"?><methodCall><methodName>blah</methodName><params /></methodCall>'));
 	});
 
 	test('Parse string parameter', () {
@@ -56,6 +56,6 @@ main() {
 		req.addParam('yep');
 		req.addParam({'hello': 'there'});
 
-		expect(req.toString(), equals('<?xml version="1.0"?>\n<methodCall>\n   <methodName>blah2</methodName>\n   <params>\n      <param>\n         <value>\n            <int>2</int>\n         </value>\n      </param>\n      <param>\n         <value>\n            <string>yep</string>\n         </value>\n      </param>\n      <param>\n         <value>\n            <struct>\n               <member>\n                  <name>hello</name>\n                  <value>\n                     <string>there</string>\n                  </value>\n               </member>\n            </struct>\n         </value>\n      </param>\n   </params>\n</methodCall>'));
+		expect(req.toString(), equals('<?xml version="1.0"?><methodCall><methodName>blah2</methodName><params><param><value><int>2</int></value></param><param><value><string>yep</string></value></param><param><value><struct><member><name>hello</name><value><string>there</string></value></member></struct></value></param></params></methodCall>'));
 	});
 }

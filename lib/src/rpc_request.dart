@@ -22,7 +22,7 @@ class RpcRequest extends _ParamsIterationSupport {
 	List _params = [];
 
   var builder;
-	XmlNode _root;
+	XmlDocument _root;
 
   String _method;
 
@@ -60,13 +60,14 @@ class RpcRequest extends _ParamsIterationSupport {
 	 * The XML header `<?xml?>` is optional and ignored.
 	 */
 	RpcRequest.fromText(String body) {
-		_root = XML.parse(body);
+		_root = parse(body);
+    var resultNode = _getResultNode();
 
-		_getParamsNode().children.forEach((XmlElement elem) {
-			var value = RpcParam.fromParamNode(elem);
+    _method = _getMethodNode().text;
 
-			_params.add(value);
-		});
+    resultNode.findAllElements('param').forEach((XmlNode paramNode) =>
+      _params.add(RpcParam.fromParamNode(paramNode))
+    );
 	}
 
 	/**
@@ -101,4 +102,10 @@ class RpcRequest extends _ParamsIterationSupport {
       });
     });
   }
+
+  XmlElement _getResultNode() =>
+      _root.rootElement.findElements('params').first;
+
+  XmlElement _getMethodNode() =>
+      _root.rootElement.findElements('methodName').first;
 }

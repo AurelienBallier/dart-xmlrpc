@@ -2,3 +2,4 @@ packages
 test/packages
 pubspec.lock
 .idea
+build

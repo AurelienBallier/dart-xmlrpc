@@ -26,17 +26,17 @@ class RpcParam {
 			null,
 
 		'base64': (XmlNode elem) =>
-			CryptoUtils.base64StringToBytes(elem.text),
+			CryptoUtils.base64StringToBytes(elem.text.trim()),
 
 		 // <array><data><value>1</value><value>2</value></data></array>
-		'array': (XmlNode elem) {
+		'array': (XmlElement elem) {
 			var result = [];
-			XmlNode dataNode = elem.children.single;
+			XmlElement dataNode = elem.findElements('data').single;
 
-			dataNode.children.forEach((XmlNode elem) {
+			dataNode.findElements('value').forEach((XmlNode elem) {
 				if(elem.nodeType.toString() == 'XmlNodeType.ELEMENT'){
 					if(elem.children.length > 0){
-						result.add(fromXmlElement(elem.children.single));
+						result.add(fromXmlElement(elem.children.singleWhere((XmlNode n) => (n.nodeType.toString() == 'XmlNodeType.ELEMENT'))));
 					}else{
 						result.add("");
 					}
@@ -51,10 +51,13 @@ class RpcParam {
 			var result = {};
 
 			elem.children.forEach((XmlNode member) {
-				var name = (member.query(NAME_NODE).single as XmlNode).text;
-				XmlNode valueNode = member.query(VALUE_NODE).single;
-
-				result[name] = fromXmlElement(valueNode.children.single);
+        if((member.nodeType.toString() == 'XmlNodeType.ELEMENT') && (member.children.length > 0)){
+          XmlElement _m = member;
+  				var name = _m.findElements(NAME_NODE).single.text;
+  				XmlNode valueNode = _m.findElements(VALUE_NODE).single;
+  
+  				result[name] = fromXmlElement(valueNode.children.single);
+        }
 			});
 
 			return result;
@@ -81,7 +84,7 @@ class RpcParam {
 			builder.element(ISO_8601_NODE, nest: new DateFormat(DATE_FORMAT).format(value));
 		},
 
-		"new List<int>().runtimeType": (var builder, List<int> binaryData) {
+		"Uint8List": (var builder, List<int> binaryData) {
 			builder.element(BASE64_NODE, nest: CryptoUtils.bytesToBase64(binaryData));
 		},
 
@@ -99,7 +102,7 @@ class RpcParam {
 			});
 		},
 
-		"Map": (Map map) {
+		"_LinkedHashMap": (var builder, Map map) {
 			builder.element(STRUCT_NODE, nest: (){
 				map.keys.forEach((Object key) {
 					builder.element(MEMBER_NODE, nest: (){
@@ -110,7 +113,7 @@ class RpcParam {
 			});
 		},
 
-		"null": (bool value) {
+		"Null": (var builder, bool value) {
 			builder.element('nil', nest: (){});
 		}
 	});
@@ -124,14 +127,14 @@ class RpcParam {
 	 *         <value>...</value>
 	 *     </param>
 	 */
-	static Object fromParamNode(XmlNode node) {
+	static Object fromParamNode(XmlElement node) {
 		assert(node.name.toString() == 'param');
 
-		XmlNode valueNodeElem = node.children[1];
+		XmlElement valueNodeElem = node.children[1];
 
 		assert(valueNodeElem.name.toString() == 'value');
-
-		return fromXmlElement(valueNodeElem.children.single);
+		
+		return fromXmlElement(valueNodeElem.children[1]);
 	}
 
 	/**
@@ -141,7 +144,7 @@ class RpcParam {
 	 *
 	 *     <int>...</int>
 	 */
-	static Object fromXmlElement(XmlNode node) {
+	static Object fromXmlElement(XmlElement node) {
 		//If there is no type it's a String
 		if(node.runtimeType == XmlText){
 			return node.text;

@@ -11,82 +11,92 @@ import 'dart:convert' show UTF8;
 main() {
 	group('To XML', () {
 		test('String', () {
-			XmlElement param = RpcParam.valueToXml('hello');
+		  XmlBuilder builder = new XmlBuilder();
+			RpcParam.buildParam(builder, 'hello');
 
-			expect(param.toString(), equals('\r<string>hello</string>'));
+			expect(builder.build().toString(), equals('<value><string>hello</string></value>'));
 		});
 
 		test('int', () {
-			XmlElement param = RpcParam.valueToXml(5);
+      XmlBuilder builder = new XmlBuilder();
+			RpcParam.buildParam(builder, 5);
 
-			expect(param.toString(), equals('\r<int>5</int>'));
+			expect(builder.build().toString(), equals('<value><int>5</int></value>'));
 		});
 
 		test('double', () {
-			XmlElement param = RpcParam.valueToXml(3.14159);
+      XmlBuilder builder = new XmlBuilder();
+			RpcParam.buildParam(builder, 3.14159);
 
-			expect(param.toString(), equals('\r<double>3.14159</double>'));
+			expect(builder.build().toString(), equals('<value><double>3.14159</double></value>'));
 		});
 
 		test('null', () {
-			XmlElement param = RpcParam.valueToXml(null);
+      XmlBuilder builder = new XmlBuilder();
+			RpcParam.buildParam(builder, null);
 
-			expect(param.toString(), equals('\r<nil></nil>'));
+			expect(builder.build().toString(), equals('<value><nil /></value>'));
 		});
 
 		test('bool', () {
-			XmlElement param = RpcParam.valueToXml(true);
-			expect(param.toString(), equals('\r<boolean>true</boolean>'));
+      XmlBuilder builder = new XmlBuilder();
+			RpcParam.buildParam(builder, true);
+			expect(builder.build().toString(), equals('<value><boolean>true</boolean></value>'));
 
-			param = RpcParam.valueToXml(false);
-			expect(param.toString(), equals('\r<boolean>false</boolean>'));
+      builder = new XmlBuilder();
+			RpcParam.buildParam(builder, false);
+			expect(builder.build().toString(), equals('<value><boolean>false</boolean></value>'));
 		});
 
 		test('DateTime', () {
+      XmlBuilder builder = new XmlBuilder();
 			var now = new DateTime.now();
-			XmlElement param = RpcParam.valueToXml(now);
+			RpcParam.buildParam(builder, now);
 			var formatter = new DateFormat(RpcParam.DATE_FORMAT);
 
-			expect(param.toString(), equals('\r<dateTime.iso8601>${formatter.format(now)}</dateTime.iso8601>'));
+			expect(builder.build().toString(), equals('<value><dateTime.iso8601>${formatter.format(now)}</dateTime.iso8601></value>'));
 		});
 
 		test('Array', () {
-			XmlElement param = RpcParam.valueToXml([5, 'hello']);
+      XmlBuilder builder = new XmlBuilder();
+			RpcParam.buildParam(builder, [5, 'hello']);
 
-			expect(param.toString(), equals('\r<array>\r   <data>\r      <value>\r         <int>5</int>\r      </value>\r      <value>\r         <string>hello</string>\r      </value>\r   </data>\r</array>'));
+			expect(builder.build().toString(), equals('<value><array><data><value><int>5</int></value><value><string>hello</string></value></data></array></value>'));
 		});
 
 		test('Map', () {
+      XmlBuilder builder = new XmlBuilder();
 			var map = new Map();
 
 			map[5] = 'hello';
 			map['there'] = 7;
 
-			XmlElement param = RpcParam.valueToXml(map);
+			RpcParam.buildParam(builder, map);
 
-			expect(param.toString(), equals('\r<struct>\r   <member>\r      <name>5</name>\r      <value>\r         <string>hello</string>\r      </value>\r   </member>\r   <member>\r      <name>there</name>\r      <value>\r         <int>7</int>\r      </value>\r   </member>\r</struct>'));
+			expect(builder.build().toString(), equals('<value><struct><member><name>5</name><value><string>hello</string></value></member><member><name>there</name><value><int>7</int></value></member></struct></value>'));
 		});
 
 		test('Base64', () {
+      XmlBuilder builder = new XmlBuilder();
 			var str = 'Just a test';
 			var bytes = UTF8.encode(str);
 			var base64 = CryptoUtils.bytesToBase64(bytes);
 
-			XmlElement param = RpcParam.valueToXml(bytes);
+			RpcParam.buildParam(builder, bytes);
 
-			expect(param.toString(), equals('\r<base64>$base64</base64>'));
+			expect(builder.build().toString(), equals('<value><base64>$base64</base64></value>'));
 		});
 	});
 
 	group('From XML', () {
 		test('String', () {
-			var param = RpcParam.fromParamNode(XML.parse('''
+			var param = RpcParam.fromParamNode(parse('''
 				<param>
 					<value>
 						<string>hello</string>
 					</value>
 				</param>
-			'''));
+			''').rootElement);
 
 			expect(param, isNotNull);
 			expect(param, new isInstanceOf<String>());
@@ -94,38 +104,38 @@ main() {
 		});
 
 		test('null', () {
-			var param = RpcParam.fromParamNode(XML.parse('''
+			var param = RpcParam.fromParamNode(parse('''
 				<param>
 					<value>
 						<nil />
 					</value>
 				</param>
-			'''));
+			''').rootElement);
 
 			expect(param, isNull);
 		});
 
 		test('double', () {
-			var param = RpcParam.fromParamNode(XML.parse('''
+			var param = RpcParam.fromParamNode(parse('''
 				<param>
 					<value>
 						<double>-3.14159</double>
 					</value>
 				</param>
-			'''));
+			''').rootElement);
 
 			expect(param, new isInstanceOf<double>());
 			expect(param, equals(-3.14159));
 		});
 
 		test('dateTime.iso8601', () {
-			var param = RpcParam.fromParamNode(XML.parse('''
+			var param = RpcParam.fromParamNode(parse('''
 				<param>
 					<value>
 						<dateTime.iso8601>19980717T14:08:55</dateTime.iso8601>
 					</value>
 				</param>
-			'''));
+			''').rootElement);
 
 			expect(param, new isInstanceOf<DateTime>());
 			expect((param as DateTime).year, equals(1998));
@@ -133,25 +143,25 @@ main() {
 		});
 
 		test('int', () {
-			var param = RpcParam.fromParamNode(XML.parse('''
+			var param = RpcParam.fromParamNode(parse('''
 				<param>
 					<value>
 						<int>1</int>
 					</value>
 				</param>
-			'''));
+			''').rootElement);
 
 			expect(param, isNotNull);
 			expect(param, new isInstanceOf<int>());
 			expect(param, equals(1));
 
-			param = RpcParam.fromParamNode(XML.parse('''
+			param = RpcParam.fromParamNode(parse('''
 				<param>
 					<value>
 						<i4>2</i4>
 					</value>
 				</param>
-			'''));
+			''').rootElement);
 
 			expect(param, isNotNull);
 			expect(param, new isInstanceOf<int>());
@@ -159,7 +169,7 @@ main() {
 		});
 
 		test('Array', () {
-			var param = RpcParam.fromParamNode(XML.parse('''
+			var param = RpcParam.fromParamNode(parse('''
 				<param>
 					<value>
 						<array>
@@ -171,7 +181,7 @@ main() {
 						</array>
 					</value>
 				</param>
-			'''));
+			''').rootElement);
 
 			expect(param, isNotNull);
 			expect(param, new isInstanceOf<List>());
@@ -184,7 +194,7 @@ main() {
 		});
 
 		test('Map', () {
-			var param = RpcParam.fromParamNode(XML.parse('''
+			var param = RpcParam.fromParamNode(parse('''
 				<param>
 					<value>
 						<struct>
@@ -199,7 +209,7 @@ main() {
 						</struct>
 					</value>
 				</param>
-			'''));
+			''').rootElement);
 
 			expect(param, isNotNull);
 			expect(param, new isInstanceOf<Map>());
@@ -214,7 +224,7 @@ main() {
 			var bytes = UTF8.encode(str);
 			var base64 = CryptoUtils.bytesToBase64(bytes);
 
-			var param = RpcParam.fromParamNode(XML.parse('''
+			var param = RpcParam.fromParamNode(parse('''
 				<param>
 					<value>
 						<base64>
@@ -222,7 +232,7 @@ main() {
 						</base64>
 					</value>
 				</param>
-			'''));
+			''').rootElement);
 
 			expect(param, isNotNull);
 			expect(param, new isInstanceOf<List<int>>());
