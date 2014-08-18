@@ -161,14 +161,29 @@ class RpcParam {
 	/**
 	 * Modify xml builder for the value.
 	 */
-
+	
 	static void buildParam(var builder, Object value) {
 		Function converter = _converter_out.getConverter(value);
 
 		assert(converter != null);
 
-		builder.element(VALUE_NODE, nest: () {
-			converter(builder, value);
-		});
+		builder.element(VALUE_NODE, nest: new ParamBuilder(converter, builder, value));
 	}
+}
+
+class ParamBuilder{
+  var builder;
+  var value;
+  var converter;
+  
+  ParamBuilder(converter, builder, value){
+    this.converter = converter;
+    this.builder = builder;
+    this.value = value;
+  }
+  
+  void call(){
+    converter(builder, value);
+  }
+  
 }
