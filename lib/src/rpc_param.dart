@@ -130,11 +130,11 @@ class RpcParam {
 	static Object fromParamNode(XmlElement node) {
 		assert(node.name.toString() == 'param');
 
-		XmlElement valueNodeElem = node.children[1];
+		XmlElement valueNodeElem = node.findElements('value').single;
 
 		assert(valueNodeElem.name.toString() == 'value');
 		
-		return fromXmlElement(valueNodeElem.children[1]);
+		return fromXmlElement(valueNodeElem.children.singleWhere((XmlNode n) => (n.nodeType.toString() == 'XmlNodeType.ELEMENT')));
 	}
 
 	/**
