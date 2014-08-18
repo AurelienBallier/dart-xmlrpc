@@ -33,16 +33,14 @@ class RpcParam {
 			var result = [];
 			XmlElement dataNode = elem.findElements('data').single;
 
-			dataNode.findElements('value').forEach((XmlNode e) {			  
-				if(e.nodeType.toString() == 'XmlNodeType.ELEMENT'){
-	        e.children.forEach((c){
-	          if(c.text.trim() != ""){
-              result.add(fromXmlElement(c));
-            }else{
-              result.add("");
-            }
-          });
-				}
+			dataNode.findElements('value').forEach((XmlNode e) {
+        if(e.nodeType.toString() == 'XmlNodeType.ELEMENT'){
+          if(e.children.length > 0){
+            result.add(fromXmlElement(e.children.single));
+          }else{
+            result.add("");
+          }
+        }
 			});
 
 			return result;
