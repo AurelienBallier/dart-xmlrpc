@@ -92,6 +92,17 @@ class RpcParam {
 			builder.element('string', nest: value);
 		},
 
+    "JSArray": (var builder, var array) {
+      builder.element(ARRAY_NODE, nest: (){
+        builder.element(DATA_NODE, nest: (){
+          array.forEach((Object value) {
+            print(value);
+            RpcParam.buildParam(builder, value);
+          });
+        });
+      });
+    },
+
 		"List": (var builder, List list) {
 			builder.element(ARRAY_NODE, nest: (){
 				builder.element(DATA_NODE, nest: (){
