@@ -38,6 +38,8 @@ class RpcParam {
 	        e.children.forEach((c){
 	          if(c.text.trim() != ""){
               result.add(fromXmlElement(c));
+            }else{
+              result.add("");
             }
           });
 				}
