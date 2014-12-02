@@ -3,3 +3,4 @@ test/packages
 pubspec.lock
 .idea
 build
+.pub

@@ -96,7 +96,6 @@ class RpcParam {
       builder.element(ARRAY_NODE, nest: (){
         builder.element(DATA_NODE, nest: (){
           array.forEach((Object value) {
-            print(value);
             RpcParam.buildParam(builder, value);
           });
         });
