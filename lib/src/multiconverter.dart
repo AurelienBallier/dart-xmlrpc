@@ -14,10 +14,8 @@ class Multiconverter {
 			return _converters[value];
 		}else if(_converters.containsKey(_type)){
 			return _converters[_type];
-		}else{
-			return converter = () {};
 		}
 
-		return converter;
+		return () {};
 	}
 }
