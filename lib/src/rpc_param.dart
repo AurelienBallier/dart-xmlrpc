@@ -143,8 +143,12 @@ class RpcParam {
 		XmlElement valueNodeElem = node.findElements('value').single;
 
 		assert(valueNodeElem.name.toString() == 'value');
-		
-		return fromXmlElement(valueNodeElem.children.singleWhere((XmlNode n) => (n.nodeType.toString() == 'XmlNodeType.ELEMENT')));
+    
+    if(valueNodeElem.children.single.nodeType.toString() != 'XmlNodeType.ELEMENT'){
+      return fromXmlElement(new XmlElement(new XmlName("string"), [], [new XmlText(valueNodeElem.children.single.text)]));
+    }else{
+      return fromXmlElement(valueNodeElem.children.singleWhere((XmlNode n) => (n.nodeType.toString() == 'XmlNodeType.ELEMENT')));
+    }
 	}
 
 	/**
