@@ -60,7 +60,7 @@ class RpcRequest extends _ParamsIterationSupport {
 	 * The XML header `<?xml?>` is optional and ignored.
 	 */
 	RpcRequest.fromText(String body) {
-		_root = parse(body);
+		_root = xml.parse(body);
     var resultNode = _getResultNode();
 
     _method = _getMethodNode().text;
