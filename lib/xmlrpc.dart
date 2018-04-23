@@ -11,7 +11,7 @@
  */
 library xmlrpc;
 
-import 'package:xml/xml.dart';
+import 'package:xml/xml.dart' as xml;
 
 import 'dart:collection';
 import 'package:intl/intl.dart';

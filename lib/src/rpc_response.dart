@@ -30,7 +30,7 @@ class RpcResponse extends _ParamsIterationSupport {
 	 * Parses an external response from text.
 	 */
   RpcResponse.fromText(String body) {
-    _root = parse(body);
+    _root = xml.parse(body);
     var resultNode = _getResultNode();
 
     isSuccess = (resultNode.name.toString() != FAULT_NODE);
