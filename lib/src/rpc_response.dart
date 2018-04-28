@@ -54,7 +54,7 @@ class RpcResponse extends _ParamsIterationSupport {
   }
 
   void _makeRoot() {
-    builder = new XmlBuilder();
+    builder = new xml.XmlBuilder();
     builder.processing('xml', 'version="1.0"');
     builder.element(RESPONSE_NODE, nest: () {
       builder.element((isSuccess ? PARAMS_NODE : FAULT_NODE), nest: () {

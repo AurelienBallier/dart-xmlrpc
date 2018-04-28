@@ -84,7 +84,7 @@ class RpcRequest extends _ParamsIterationSupport {
   * Build the request.
   */
   void build(){
-    builder = new XmlBuilder();
+    builder = new xml.XmlBuilder();
     builder.processing('xml', 'version="1.0"');
     builder.element(METHOD_CALL_NODE, nest: () {
       builder.element(METHOD_NAME_NODE, nest: _method);

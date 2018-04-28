@@ -145,7 +145,7 @@ class RpcParam {
 		assert(valueNodeElem.name.toString() == 'value');
     
     if(valueNodeElem.children.single.nodeType.toString() != 'XmlNodeType.ELEMENT'){
-      return fromXmlElement(new XmlElement(new XmlName("string"), [], [new XmlText(valueNodeElem.children.single.text)]));
+      return fromXmlElement(new XmlElement(new xml.XmlName("string"), [], [new xml.XmlText(valueNodeElem.children.single.text)]));
     }else{
       return fromXmlElement(valueNodeElem.children.singleWhere((XmlNode n) => (n.nodeType.toString() == 'XmlNodeType.ELEMENT')));
     }
@@ -160,7 +160,7 @@ class RpcParam {
 	 */
 	static Object fromXmlElement(XmlNode node) {
 		//If there is no type it's a String
-		if(node.runtimeType == XmlText){
+		if(node.runtimeType == xml.XmlText){
 			return node.text;
 		}
 
