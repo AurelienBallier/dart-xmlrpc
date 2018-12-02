@@ -36,10 +36,10 @@ class RpcResponse extends _ParamsIterationSupport {
     isSuccess = (resultNode.name.toString() != FAULT_NODE);
 
     if (isSuccess) {
-      resultNode.findAllElements('param').forEach((XmlNode paramNode) => _params.add(RpcParam.fromParamNode(paramNode)));
+      resultNode.findAllElements('param').forEach((xml.XmlNode paramNode) => _params.add(RpcParam.fromParamNode(paramNode)));
     } else {
-      XmlElement valueNode = resultNode.children.singleWhere((XmlNode n) => (n.nodeType.toString() == 'XmlNodeType.ELEMENT'));
-      XmlElement typeNode = valueNode.children.singleWhere((XmlNode n) => (n.nodeType.toString() == 'XmlNodeType.ELEMENT'));
+      xml.XmlElement valueNode = resultNode.children.singleWhere((xml.XmlNode n) => (n.nodeType.toString() == 'XmlNodeType.ELEMENT'));
+      xml.XmlElement typeNode = valueNode.children.singleWhere((xml.XmlNode n) => (n.nodeType.toString() == 'XmlNodeType.ELEMENT'));
 
       _params.add(RpcParam.fromXmlElement(typeNode));
     }
@@ -55,7 +55,7 @@ class RpcResponse extends _ParamsIterationSupport {
 
   void _makeRoot() {
     builder = new xml.XmlBuilder();
-    builder.processing('xml', 'version="1.0"');
+    builder.processing('xml', "version='1.0'");
     builder.element(RESPONSE_NODE, nest: () {
       builder.element((isSuccess ? PARAMS_NODE : FAULT_NODE), nest: () {
         _makeParams();
@@ -89,7 +89,7 @@ class RpcResponse extends _ParamsIterationSupport {
     }
   }
 
-  XmlElement _getResultNode() {
+  xml.XmlElement _getResultNode() {
     var e = _root.rootElement.findElements('params');
     if (e.length > 0) {
       return e.first;

@@ -7,33 +7,33 @@ class RpcParam {
 	static String DATE_FORMAT = 'yMdTHH:mm:ss';
 
 	static final _converter_in = new Multiconverter({
-		'boolean': (XmlNode elem) =>
+		'boolean': (xml.XmlNode elem) =>
 			elem.text == 'true',
 
-		'int': (XmlNode elem) =>
+		'int': (xml.XmlNode elem) =>
 			int.parse(elem.text),
 
-		'i4': (XmlNode elem) =>
+		'i4': (xml.XmlNode elem) =>
 			int.parse(elem.text),
 
-		'double': (XmlNode elem) =>
+		'double': (xml.XmlNode elem) =>
 			double.parse(elem.text),
 
-		ISO_8601_NODE: (XmlNode elem) =>
+		ISO_8601_NODE: (xml.XmlNode elem) =>
 			DateTime.parse(elem.text),
 
-		'nil': (XmlNode elem) =>
+		'nil': (xml.XmlNode elem) =>
 			null,
 
-		'base64': (XmlNode elem) =>
+		'base64': (xml.XmlNode elem) =>
 			CryptoUtils.base64StringToBytes(elem.text.trim()),
 
 		 // <array><data><value>1</value><value>2</value></data></array>
-		'array': (XmlElement elem) {
+		'array': (xml.XmlElement elem) {
 			var result = [];
-			XmlElement dataNode = elem.findElements('data').single;
+			xml.XmlElement dataNode = elem.findElements('data').single;
 
-			dataNode.findElements('value').forEach((XmlNode e) {
+			dataNode.findElements('value').forEach((xml.XmlNode e) {
         if(e.nodeType.toString() == 'XmlNodeType.ELEMENT'){
           if(e.children.length > 0){
             result.add(fromXmlElement(e.children.single));
@@ -47,14 +47,14 @@ class RpcParam {
 		},
 
 		 // <struct><member><name>some</name><value><string>value</string></value></member></struct>
-		'struct': (XmlNode elem) {
+		'struct': (xml.XmlNode elem) {
 			var result = {};
 
-			elem.children.forEach((XmlNode member) {
+			elem.children.forEach((xml.XmlNode member) {
         if((member.nodeType.toString() == 'XmlNodeType.ELEMENT') && (member.children.length > 0)){
-          XmlElement _m = member;
+          xml.XmlElement _m = member;
   				var name = _m.findElements(NAME_NODE).single.text;
-  				XmlNode valueNode = _m.findElements(VALUE_NODE).single;
+  				xml.XmlNode valueNode = _m.findElements(VALUE_NODE).single;
   
   				result[name] = fromXmlElement(valueNode.children.single);
         }
@@ -63,7 +63,7 @@ class RpcParam {
 			return result;
 		},
 
-		'string': (XmlNode elem) =>
+		'string': (xml.XmlNode elem) =>
 			elem.text
 	});
 
@@ -137,17 +137,17 @@ class RpcParam {
 	 *         <value>...</value>
 	 *     </param>
 	 */
-	static Object fromParamNode(XmlElement node) {
+	static Object fromParamNode(xml.XmlElement node) {
 		assert(node.name.toString() == 'param');
 
-		XmlElement valueNodeElem = node.findElements('value').single;
+		xml.XmlElement valueNodeElem = node.findElements('value').single;
 
 		assert(valueNodeElem.name.toString() == 'value');
     
     if(valueNodeElem.children.single.nodeType.toString() != 'XmlNodeType.ELEMENT'){
-      return fromXmlElement(new XmlElement(new xml.XmlName("string"), [], [new xml.XmlText(valueNodeElem.children.single.text)]));
+      return fromXmlElement(new xml.XmlElement(new xml.XmlName("string"), [], [new xml.XmlText(valueNodeElem.children.single.text)]));
     }else{
-      return fromXmlElement(valueNodeElem.children.singleWhere((XmlNode n) => (n.nodeType.toString() == 'XmlNodeType.ELEMENT')));
+      return fromXmlElement(valueNodeElem.children.singleWhere((xml.XmlNode n) => (n.nodeType.toString() == 'XmlNodeType.ELEMENT')));
     }
 	}
 
@@ -158,13 +158,13 @@ class RpcParam {
 	 *
 	 *     <int>...</int>
 	 */
-	static Object fromXmlElement(XmlNode node) {
+	static Object fromXmlElement(xml.XmlNode node) {
 		//If there is no type it's a String
 		if(node.runtimeType == xml.XmlText){
 			return node.text;
 		}
 
-		XmlElement _e = node;
+		xml.XmlElement _e = node;
 		Function converter = _converter_in.getConverter(_e.name.toString());
 
 		assert(converter != null);
